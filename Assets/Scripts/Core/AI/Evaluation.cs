@@ -79,15 +79,17 @@ namespace Chess {
 		int EvaluatePieceSquareTables (int colourIndex, float endgamePhaseWeight) {
 			int value = 0;
 			bool isWhite = colourIndex == Board.WhiteIndex;
-			value += EvaluatePieceSquareTable (PieceSquareTable.pawns, board.pawns[colourIndex], isWhite);
 			value += EvaluatePieceSquareTable (PieceSquareTable.rooks, board.rooks[colourIndex], isWhite);
 			value += EvaluatePieceSquareTable (PieceSquareTable.knights, board.knights[colourIndex], isWhite);
 			value += EvaluatePieceSquareTable (PieceSquareTable.bishops, board.bishops[colourIndex], isWhite);
 			value += EvaluatePieceSquareTable (PieceSquareTable.queens, board.queens[colourIndex], isWhite);
+			int pawnsEarlyPhase = EvaluatePieceSquareTable (PieceSquareTable.pawns, board.pawns[colourIndex], isWhite);
+			int pawnsEndPhase = EvaluatePieceSquareTable (PieceSquareTable.pawnsEnd, board.pawns[colourIndex], isWhite);
+			int kingEndPhase = PieceSquareTable.Read (PieceSquareTable.kingEnd, board.KingSquare[colourIndex], isWhite);
 			int kingEarlyPhase = PieceSquareTable.Read (PieceSquareTable.kingMiddle, board.KingSquare[colourIndex], isWhite);
-			value += (int) (kingEarlyPhase * (1 - endgamePhaseWeight));
-			//value += PieceSquareTable.Read (PieceSquareTable.kingMiddle, board.KingSquare[colourIndex], isWhite);
-
+			value += (int) (kingEarlyPhase * (1 - endgamePhaseWeight) + kingEndPhase * endgamePhaseWeight);
+			value += (int) (pawnsEarlyPhase * (1 - endgamePhaseWeight) + pawnsEndPhase * endgamePhaseWeight);
+			
 			return value;
 		}
 

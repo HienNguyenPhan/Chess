@@ -6,7 +6,8 @@
 
 	public class Search {
 
-		const int transpositionTableSize = 64000;
+		const int transpositionTableSize = 64;
+		const int maxExtentions = 16;
 		const int immediateMateScore = 100000;
 		const int positiveInfinity = 9999999;
 		const int negativeInfinity = -positiveInfinity;
@@ -46,7 +47,6 @@
 			moveOrdering = new MoveOrdering (moveGenerator, tt);
 			invalidMove = Move.InvalidMove;
 			int s = TranspositionTable.Entry.GetSize ();
-			//Debug.Log ("TT entry: " + s + " bytes. Total size: " + ((s * transpositionTableSize) / 1000f) + " mb.");
 		}
 
 		public void StartSearch () {
@@ -74,7 +74,8 @@
 				int targetDepth = (settings.useFixedDepthSearch) ? settings.depth : int.MaxValue;
 
 				for (int searchDepth = 1; searchDepth <= targetDepth; searchDepth++) {
-					SearchMoves (searchDepth, 0, negativeInfinity, positiveInfinity);
+					SearchMoves (searchDepth, 0, negativeInfinity, positiveInfinity, 0);
+
 					if (abortSearch) {
 						break;
 					} else {
@@ -95,7 +96,7 @@
 					}
 				}
 			} else {
-				SearchMoves (settings.depth, 0, negativeInfinity, positiveInfinity);
+				SearchMoves (settings.depth, 0, negativeInfinity, positiveInfinity, 0);
 				bestMove = bestMoveThisIteration;
 				bestEval = bestEvalThisIteration;
 			}
@@ -115,7 +116,7 @@
 			abortSearch = true;
 		}
 
-		int SearchMoves (int depth, int plyFromRoot, int alpha, int beta) {
+		int SearchMoves (int depth, int plyFromRoot, int alpha, int beta, int numExtension = 0) {
 			if (abortSearch) {
 				return 0;
 			}
@@ -174,7 +175,8 @@
 
 			for (int i = 0; i < moves.Count; i++) {
 				board.MakeMove (moves[i], inSearch : true);
-				int eval = -SearchMoves (depth - 1, plyFromRoot + 1, -beta, -alpha);
+				int extension = numExtension < maxExtentions && moveGenerator.InCheck () ? 1 : 0;
+				int eval = -SearchMoves (depth - 1 + extension, plyFromRoot + 1, -beta, -alpha, numExtension + extension);
 				board.UnmakeMove (moves[i], inSearch : true);
 				numNodes++;
 
@@ -218,7 +220,7 @@
 			if (eval > alpha) {
 				alpha = eval;
 			}
-
+			
 			var moves = moveGenerator.GenerateMoves (board, false);
 			moveOrdering.OrderMoves (board, moves, false);
 			for (int i = 0; i < moves.Count; i++) {

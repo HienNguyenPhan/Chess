@@ -4,30 +4,25 @@
 
 		public const int lookupFailed = int.MinValue;
 
-		// The value for this position is the exact evaluation
 		public const int Exact = 0;
-		// A move was found during the search that was too good, meaning the opponent will play a different move earlier on,
-		// not allowing the position where this move was available to be reached. Because the search cuts off at
-		// this point (beta cut-off), an even better move may exist. This means that the evaluation for the
-		// position could be even higher, making the stored value the lower bound of the actual value.
 		public const int LowerBound = 1;
-		// No move during the search resulted in a position that was better than the current player could get from playing a
-		// different move in an earlier position (i.e eval was <= alpha for all moves in the position).
-		// Due to the way alpha-beta search works, the value we get here won't be the exact evaluation of the position,
-		// but rather the upper bound of the evaluation. This means that the evaluation is, at most, equal to this value.
 		public const int UpperBound = 2;
 
 		public Entry[] entries;
 
-		public readonly ulong size;
+		public readonly ulong count;
 		public bool enabled = true;
 		Board board;
 
-		public TranspositionTable (Board board, int size) {
+		public TranspositionTable (Board board, int sizeMB) {
 			this.board = board;
-			this.size = (ulong) size;
+			
+			int ttEntrySizeBytes = System.Runtime.InteropServices.Marshal.SizeOf<TranspositionTable.Entry>();
+			int ttSize = sizeMB * 1024 * 1024;
+			int numEntries = ttSize / ttEntrySizeBytes;
 
-			entries = new Entry[size];
+			count = (ulong)(numEntries);
+			entries = new Entry[numEntries];
 		}
 
 		public void Clear () {
@@ -38,7 +33,7 @@
 
 		public ulong Index {
 			get {
-				return board.ZobristKey % size;
+				return board.ZobristKey % count;
 			}
 		}
 
