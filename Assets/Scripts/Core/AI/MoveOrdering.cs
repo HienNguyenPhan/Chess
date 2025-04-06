@@ -21,11 +21,7 @@ namespace Chess {
 			invalidMove = Move.InvalidMove;
 		}
 
-		public void OrderMoves (Board board, List<Move> moves, bool useTT) {
-			Move hashMove = invalidMove;
-			if (useTT) {
-				hashMove = transpositionTable.GetStoredMove ();
-			}
+		public void OrderMoves (Board board, List<Move> moves, Move hashMove) {
 
 			for (int i = 0; i < moves.Count; i++) {
 				int score = 0;

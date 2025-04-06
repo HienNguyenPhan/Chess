@@ -81,6 +81,8 @@ namespace Chess {
 			}
 		}
 
+		public static Move NullMove => new Move(0);
+
 		public static Move InvalidMove {
 			get {
 				return new Move (0);
